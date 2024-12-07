@@ -1,13 +1,15 @@
 [project]
-name = "ai-yp24-75"
+name = "project"
 version = "0.1.0"
 description = "Add your description here"
-readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "apimoex>=1.3.0",
-    "matplotlib>=3.9.2",
-    "pandas>=2.2.3",
+    "arch>=7.2.0",
+    "matplotlib>=3.9.3",
+    "numpy==1.26.4",
+    "pandas==2.0",
+    "pmdarima>=2.0.4",
     "requests>=2.32.3",
     "scikit-learn>=1.5.2",
     "seaborn>=0.13.2",
