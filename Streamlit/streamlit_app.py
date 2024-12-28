@@ -1,3 +1,3 @@
 import streamlit as st
 
-# That's it 4 now :)
+st.write("That's it for now")
