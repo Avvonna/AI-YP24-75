@@ -11,7 +11,7 @@ from variables import BACKEND_URL
 start_date = st.date_input('Enter start date')
 end_date = st.date_input('Enter end date')
 name = st.text_input('Enter ticker name')
-if name and start_date and end_date:
+if st.button('Get data'):
     response = requests.post(BACKEND_URL+'/api/ticker-data', data=dumps({'ticker': name, 'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()}, default=serialize_datetime))
     if response.status_code == 200:
         js = response.json()
