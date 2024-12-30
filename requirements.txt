@@ -148,6 +148,8 @@ python-dateutil==2.9.0.post0
     # via
     #   matplotlib
     #   pandas
+python-multipart==0.0.20
+    # via project (pyproject.toml)
 pytz==2024.2
     # via pandas
 pywavelets==1.8.0
