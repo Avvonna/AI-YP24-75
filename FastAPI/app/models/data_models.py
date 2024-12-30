@@ -20,7 +20,7 @@ class TimeSeriesData(BaseModel):
         description="Уникальное имя эксперимента"
     )
 
-    @field_validator('values')
+    @field_validator("values")
     def validate_values(cls, v: list[float]) -> list[float]:
         """Проверка значений временного ряда"""
         if not v:
@@ -45,10 +45,10 @@ class ModelConfig(BaseModel):
         description="Максимальный порядок AR члена"
     )
 
-    @field_validator('seasonal_period')
+    @field_validator("seasonal_period")
     def validate_seasonal_period(cls, v: Optional[int], values: dict[str, Any]) -> Optional[int]:
         """Проверка периода сезонности"""
-        if values.get('seasonal') and (v is None or v < 1):
+        if values.get("seasonal") and (v is None or v < 1):
             raise ValueError("Период сезонности должен быть положительным числом при seasonal=True")
         return v
 

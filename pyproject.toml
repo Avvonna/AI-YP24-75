@@ -6,6 +6,7 @@ requires-python = ">=3.9"
 dependencies = [
     "apimoex>=1.3.0",
     "arch>=7.2.0",
+    "fastapi>=0.115.6",
     "matplotlib>=3.9.3",
     "nbformat>=5.10.4",
     "numpy==1.26.4",
@@ -19,6 +20,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "statsmodels>=0.14.4",
     "streamlit>=1.41.1",
+    "uvicorn>=0.34.0",
 ]
 
 [dependency-groups]
@@ -31,16 +33,14 @@ line-length = 120
 
 [tool.ruff.lint]
 select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # flake8-bugbear
-    "B",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
+    "E", "W",   # pycodestyle
+    "F",        # Pyflakes
+    "UP",       # pyupgrade
+    "ASYNC",    # flake8-async
+    "B",        # flake8-bugbear
+    "C4",       # flake8-comprehensions
+    "PIE",      # flake8-pie
+    "SIM",      # flake8-simplify
+    "Q",        # flake8-quotes
+    "I",        # isort
 ]

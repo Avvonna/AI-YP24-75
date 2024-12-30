@@ -178,7 +178,7 @@ async def compare_experiments(
 async def save_model(
     path: Annotated[str, "Путь для сохранения модели"],
     experiment_name: Optional[str] = None,
-    format_type: str = 'pickle'
+    format_type: str = "pickle"
 ) -> dict[str, str]:
     """Сохранение обученной модели в файл."""
     try:
@@ -198,7 +198,7 @@ async def save_model(
 async def load_model(
     path: Annotated[str, "Путь к сохраненной модели"],
     experiment_name: Annotated[str, "Имя для загружаемого эксперимента"],
-    format_type: str = 'pickle'
+    format_type: str = "pickle"
 ) -> dict[str, str]:
     """Загрузка сохраненной модели из файла."""
     try:
