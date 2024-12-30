@@ -5,7 +5,9 @@ from json import dumps
 from serializer import serialize_datetime
 from matplotlib import pyplot as plt
 
-from variables import BACKEND_URL
+import os
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 names = st.text_area("Input names of experiments (divide by commas)")
 if names:

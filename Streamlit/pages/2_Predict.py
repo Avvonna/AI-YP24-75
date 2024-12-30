@@ -5,7 +5,9 @@ from json import dumps
 import matplotlib.pyplot as plt
 from serializer import serialize_datetime
 import plotly.express as px
-from variables import BACKEND_URL
+import os
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 name = st.text_input('Enter ticker name')
 start_date = st.date_input('Enter start date')

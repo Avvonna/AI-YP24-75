@@ -5,8 +5,9 @@ from json import dumps
 from serializer import serialize_datetime
 from matplotlib import pyplot as plt
 import plotly.express as px
+import os
 
-from variables import BACKEND_URL
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 start_date = st.date_input('Enter start date')
 end_date = st.date_input('Enter end date')

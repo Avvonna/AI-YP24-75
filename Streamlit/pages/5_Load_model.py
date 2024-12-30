@@ -8,7 +8,9 @@ from tornado.options import options
 from serializer import serialize_datetime
 from matplotlib import pyplot as plt
 
-from variables import BACKEND_URL
+import os
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 action = st.radio('Load or save model?', options=['load', 'save'])
 path = st.text_input('Input path to save or load model')

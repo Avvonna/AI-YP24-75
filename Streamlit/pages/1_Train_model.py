@@ -5,7 +5,9 @@ import logging
 from json import dumps
 
 from serializer import serialize_datetime
-from variables import BACKEND_URL
+import os
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 
 
