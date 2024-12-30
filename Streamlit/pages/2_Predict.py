@@ -10,28 +10,12 @@ from serializer import serialize_datetime
 
 import streamlit as st
 import plotly.graph_objects as go
-from variables import BACKEND_URL
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 name = st.text_input("Enter ticker name")
 start_date = st.date_input("Enter start date")
 end_date = st.number_input("Enter forecast_period", value=10, min_value=1, max_value=100)
-if st.button("Predict"):
-    response = requests.post(
-        url=BACKEND_URL+"/api/predict",
-        data=dumps(
-            {
-                "ticker": name,
-                "base_date": start_date.isoformat(),
-                "forecast_period": end_date
-                },
-            default=serialize_datetime
-            )
-        )
-name = st.text_input('Enter ticker name')
-start_date = st.date_input('Enter start date')
-end_date = st.number_input('Enter forecast_period', value=10, min_value=1, max_value=100)
 if st.button('Predict'):
     response = requests.post(BACKEND_URL+'/api/predict', data=dumps({'ticker': name, 'base_date': start_date.isoformat(), 'forecast_period': end_date}, default=serialize_datetime))
     historical_data = requests.post(BACKEND_URL+'/api/ticker-data', data=dumps({'ticker': name, 'start_date': (pd.to_datetime(start_date) - pd.Timedelta(days=60)).isoformat(), 'end_date': start_date.isoformat()}, default=serialize_datetime))
