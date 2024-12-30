@@ -4,6 +4,7 @@ import requests
 from json import dumps
 from serializer import serialize_datetime
 from matplotlib import pyplot as plt
+import plotly.express as px
 
 from variables import BACKEND_URL
 
@@ -15,8 +16,7 @@ if name and start_date and end_date:
     if response.status_code == 200:
         js = response.json()
         st.write('Ticker data:')
-        st.write(pd.DataFrame(response.json()))
-        fig, ax = plt.subplots()
-        ax.plot(js['dates'], js['values'])
-        plt.rcParams.update({'font.size': 5})
-        st.pyplot(fig)
+        df = pd.DataFrame({'dates': js['dates'], 'values': js['values']})
+        st.write(df)
+        fig = px.line(df, x="dates", y="values")
+        st.plotly_chart(fig, use_container_width=True)
