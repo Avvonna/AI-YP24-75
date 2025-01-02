@@ -1,7 +1,7 @@
 import logging
 import pickle
 import warnings
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -14,12 +14,18 @@ from pmdarima import auto_arima
 logger = logging.getLogger(__name__)
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+init_data = pd.read_csv("app/services/init_data.csv")
+init_data["date"] = pd.to_datetime(init_data["date"])
+
+init_tickers = ["LKOH", "ROSN", "SIBN", "SNGS", "TATN"]
+
 class MLService:
     def __init__(self):
         self.experiments: dict[str, dict] = {}
         self.current_experiment: Optional[str] = None
         self.current_model = "auto_arima_60"
-        self.tickers: list[str] = []
+        self.tickers: list[str] = init_tickers
+        self.data: pd.DataFrame = init_data
         logger.info("MLService инициализирован")
 
     def get_available_tickers(self) -> list[str]:
@@ -34,6 +40,22 @@ class MLService:
         if ticker in self.tickers:
             self.tickers.remove(ticker)
             logger.info(f"Удален тикер: {ticker}")
+
+    def get_ticker_history(self, ticker, start_date, end_date) -> dict[str, Any]:
+        try:
+            temp_df = self.data[["date", ticker]]
+            if start_date:
+                temp_df = temp_df[temp_df["date"] >= start_date]
+            if end_date:
+                temp_df = temp_df[temp_df["date"] <= end_date]
+
+            return {
+                "ticker": ticker,
+                "dates": temp_df["date"].tolist(),
+                "values": temp_df[ticker].tolist(),
+            }
+        except Exception as e:
+            raise Exception(e) from e
 
     def train_model(self, data: TimeSeriesData, config: ModelConfig) -> dict[str, float]:
         try:
@@ -163,19 +185,16 @@ class MLService:
 
             if ticker not in self.tickers:
                 raise ValueError(f"Тикер {ticker} не найден в списке доступных")
+            base_date = datetime.fromisoformat(base_date)
+            border = base_date - timedelta(days=60)
+            filtered_data = self.data[(self.data["date"] >= border) & (self.data["date"] <= base_date)]
 
-            # Здесь должна быть логика получения реальных данных тикера
-            # Сейчас возвращаем тестовые данные
-            dates = pd.date_range(
-                start=pd.to_datetime(base_date) - pd.Timedelta(days=60),
-                end=pd.to_datetime(base_date)
-            )
-            trend = np.linspace(100, 120, len(dates))
-            values = trend + np.random.normal(0, 2, len(dates))
+            dates=filtered_data["date"].tolist()
+            values=filtered_data[ticker].tolist()
 
             train_data = TimeSeriesData(
-                dates=dates.tolist(),
-                values=values.tolist(),
+                dates=dates,
+                values=values,
                 experiment_name=f"{ticker}_{base_date}"
             )
 
@@ -188,12 +207,14 @@ class MLService:
             )[1:]
 
             return {
-                "forecast_dates": forecast_dates.strftime("%Y-%m-%d").tolist(),
+                # "forecast_dates": forecast_dates.strftime("%Y-%m-%d").tolist(),
+                "forecast_dates": forecast_dates.tolist(),
                 "forecast_values": forecast,
                 "confidence_intervals": conf_intervals,
                 "history": {
-                    "dates": dates.strftime("%Y-%m-%d").tolist(),
-                    "values": values.tolist()
+                    # "dates": dates.strftime("%Y-%m-%d").tolist(),
+                    "dates": dates,
+                    "values": values
                 }
             }
         except Exception as e:

@@ -59,31 +59,46 @@ class CurrentModelPredictRequest(BaseModel):
        return v
 
 class HistoricalDataRequest(BaseModel):
-   """Запрос исторических данных"""
-   start_date: str = Field(..., description="Начальная дата")
-   end_date: str = Field(..., description="Конечная дата")
+    """Запрос исторических данных"""
+    start_date: Optional[str] = Field(..., description="Начальная дата")
+    end_date: Optional[str] = Field(..., description="Конечная дата")
 
-   @field_validator("end_date")
-   def validate_dates(cls, v: str, values: dict[str, Any]) -> str:
-       start = datetime.fromisoformat(values["start_date"])
-       end = datetime.fromisoformat(v)
-       if end <= start:
-           raise ValueError("Конечная дата должна быть позже начальной")
-       return v
+    @field_validator("start_date", "end_date", mode="before")
+    def validate_date_format(cls, v: Optional[str]) -> Optional[str]:
+        if not v or v.strip() == "":
+            return None
+        try:
+            datetime.fromisoformat(v)
+            return v
+        except ValueError as e:
+            raise ValueError("Неверный формат. Используйте YYYY-MM-DD") from e
 
-class HistoricalDataResponse(BaseModel):
-   """Ответ с историческими данными"""
-   dates: list[str] = Field(..., description="Список дат")
-   values: list[float] = Field(..., description="Список значений")
+    @field_validator("end_date", mode="after")
+    def validate_date_range(cls, v: Optional[str], info) -> Optional[str]:
+        start_date = info.data.get("start_date")
+        if not v or not start_date:
+            return v
 
-   @field_validator("dates")
-   def validate_dates(cls, v: list[str]) -> list[str]:
-       for date in v:
-           try:
-               datetime.fromisoformat(date)
-           except ValueError as e:
-               raise ValueError(f"Некорректный формат даты: {date}") from e
-       return v
+        start = datetime.fromisoformat(start_date)
+        end = datetime.fromisoformat(v)
+
+        if end <= start:
+            raise ValueError("Конечная дата должны быть больше начальной.")
+        return v
+
+# class HistoricalDataResponse(BaseModel):
+#    """Ответ с историческими данными"""
+#    dates: list[str] = Field(..., description="Список дат")
+#    values: list[float] = Field(..., description="Список значений")
+
+#    @field_validator("dates")
+#    def validate_dates(cls, v: list[str]) -> list[str]:
+#        for date in v:
+#            try:
+#                datetime.fromisoformat(date)
+#            except ValueError as e:
+#                raise ValueError(f"Некорректный формат даты: {date}") from e
+#        return v
 
 class ExperimentMetrics(BaseModel):
    """Метрики эксперимента"""

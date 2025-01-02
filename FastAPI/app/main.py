@@ -58,15 +58,15 @@ async def get_tickers() -> list[str]:
    logger.info("Запрос списка тикеров")
    return ml_service.get_available_tickers()
 
-@app.get("/api/tickers/{ticker}/history")
-async def get_ticker_histor(
+@app.post("/api/tickers/{ticker}/history")
+async def get_ticker_history(
    ticker: str,
    request: HistoricalDataRequest
 ) -> dict[str, Any]:
    """Get historical data for ticker"""
    try:
        logger.info(f"Получение истории {ticker}")
-       return ml_service.get_historical_data(
+       return ml_service.get_ticker_history(
            ticker,
            request.start_date,
            request.end_date
