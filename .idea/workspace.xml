@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="43498835-d947-471b-a0e9-807c4a81015a" name="Changes" comment="Streamlit v1">
+      <change afterPath="$PROJECT_DIR$/Streamlit/pages/1_Add_ticker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FastAPI/app/models/data_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/FastAPI/app/models/data_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FastAPI/app/services/ml_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/FastAPI/app/services/ml_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Streamlit/pages/1_Train_model.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Streamlit/pages/2_Predict.py" beforeDir="false" afterPath="$PROJECT_DIR$/Streamlit/pages/2_Predict.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Streamlit/pages/3_Get_ticker_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/Streamlit/pages/3_Get_ticker_data.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;exerius&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Avvonna/AI-YP24-75.git&quot;,
+    &quot;accountId&quot;: &quot;ce615404-f4b8-4754-ada3-77aee323beb3&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2qvnBDYLwqftg2s1tjVWKwNLqJE" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.main.executor": "Run",
+    "Python.ml_service.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "#1 on FastAPI",
+    "last_opened_file_path": "D:/Documents/GitHub/AI-YP24-75/Streamlit"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Documents\GitHub\AI-YP24-75\Streamlit" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Documents\GitHub\AI-YP24-75" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-98f27166c754-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.21829.153" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="43498835-d947-471b-a0e9-807c4a81015a" name="Changes" comment="" />
+      <created>1735551779561</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1735551779561</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Streamlit v1">
+      <option name="closed" value="true" />
+      <created>1735551916392</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1735551916392</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="streamlit" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Streamlit v1" />
+    <option name="LAST_COMMIT_MESSAGE" value="Streamlit v1" />
+  </component>
+</project>

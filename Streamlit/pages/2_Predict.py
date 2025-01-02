@@ -13,7 +13,8 @@ import plotly.graph_objects as go
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
-name = st.text_input("Enter ticker name")
+tickers = requests.get(BACKEND_URL+"/api/tickers").content.decode()
+name = st.selectbox("Select ticker name", options=eval(tickers))
 start_date = st.date_input("Enter start date")
 end_date = st.number_input("Enter forecast_period", value=10, min_value=1, max_value=100)
 if st.button('Predict'):
