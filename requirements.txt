@@ -4,6 +4,8 @@ altair==5.5.0
     # via streamlit
 annotated-types==0.7.0
     # via pydantic
+anyio==4.7.0
+    # via starlette
 apimoex==1.4.0
     # via project (pyproject.toml)
 arch==7.2.0
@@ -21,7 +23,9 @@ certifi==2024.12.14
 charset-normalizer==3.4.0
     # via requests
 click==8.1.8
-    # via streamlit
+    # via
+    #   streamlit
+    #   uvicorn
 colorama==0.4.6
     # via click
 contourpy==1.3.1
@@ -30,6 +34,10 @@ cycler==0.12.1
     # via matplotlib
 cython==3.0.11
     # via pmdarima
+exceptiongroup==1.2.2
+    # via anyio
+fastapi==0.115.6
+    # via project (pyproject.toml)
 fastjsonschema==2.21.1
     # via nbformat
 fonttools==4.55.3
@@ -38,8 +46,12 @@ gitdb==4.0.11
     # via gitpython
 gitpython==3.1.43
     # via streamlit
+h11==0.14.0
+    # via uvicorn
 idna==3.10
-    # via requests
+    # via
+    #   anyio
+    #   requests
 jinja2==3.1.5
     # via
     #   altair
@@ -121,7 +133,9 @@ protobuf==5.29.2
 pyarrow==18.1.0
     # via streamlit
 pydantic==2.10.4
-    # via project (pyproject.toml)
+    # via
+    #   project (pyproject.toml)
+    #   fastapi
 pydantic-core==2.27.2
     # via pydantic
 pydeck==0.9.1
@@ -134,6 +148,8 @@ python-dateutil==2.9.0.post0
     # via
     #   matplotlib
     #   pandas
+python-multipart==0.0.20
+    # via project (pyproject.toml)
 pytz==2024.2
     # via pandas
 pywavelets==1.8.0
@@ -173,6 +189,10 @@ six==1.17.0
     # via python-dateutil
 smmap==5.0.1
     # via gitdb
+sniffio==1.3.1
+    # via anyio
+starlette==0.41.3
+    # via fastapi
 statsmodels==0.14.4
     # via
     #   project (pyproject.toml)
@@ -197,14 +217,20 @@ traitlets==5.14.3
 typing-extensions==4.12.2
     # via
     #   altair
+    #   anyio
+    #   fastapi
     #   pydantic
     #   pydantic-core
+    #   rich
     #   streamlit
+    #   uvicorn
 tzdata==2024.2
     # via pandas
 urllib3==2.2.3
     # via
     #   pmdarima
     #   requests
+uvicorn==0.34.0
+    # via project (pyproject.toml)
 watchdog==6.0.0
     # via streamlit
