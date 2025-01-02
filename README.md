@@ -11,6 +11,24 @@ AI YP'24 [Команда 75 | 20. Предсказание стоимости а
 
 Создать инструмент для прогнозирования цен на ценные бумаги, который можно использовать для принятия информированных инвестиционных решений.
 
+**Результаты промежуточного этапа:**
+
+Проведены:
+- Получение данных из множества различных источников (см. [dataset.md](https://github.com/Avvonna/AI-YP24-75/blob/main/dataset.md))
+- Разведочный анализ данных (подробнее в [1_Tickers_EDA.ipynb](https://github.com/Avvonna/AI-YP24-75/blob/main/1_Tickers_EDA.ipynb) и [1_EXOG_d_EDA.ipynb](https://github.com/Avvonna/AI-YP24-75/blob/main/1_EXOG_d_EDA.ipynb); выводы в [EDA.md](https://github.com/Avvonna/AI-YP24-75/blob/main/EDA.md))
+- Построение базового решения - `ARIMA` на основе данных за последние 2 месяца, с автоподбором оптимальных параметров (подробнее в [2_Baseline.ipynb](https://github.com/Avvonna/AI-YP24-75/blob/main/2_Baseline.ipynb))
+
+Реализованы:
+- **Контейнеризация** (Docker-compose)
+- **Frontend** (Streamlit)
+- **Backend** (RestAPI)
+
+**Осталось сделать:** (согласно [checkpoints.md](https://github.com/Avvonna/AI-YP24-75/blob/main/checkpoints.md))
+- Разработка продвинутых ML моделей
+- Создание Telegram-бота
+- 5\. Финализация приложения (март)
+- 6\. Глубокое обучение (DL) (апрель - май)
+
 **Состав команды:**
 
 - Алкаев Владислав (*@fooqa*)
