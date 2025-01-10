@@ -6,10 +6,9 @@ st.markdown(
     """
 
     ### Said index:
-    - [Train model](/Train_model)
+    - [Add ticker](/Add_ticker)
     - [Make prediction](/Predict)
     - [Get data from particular ticket](/Get_ticket_data)
-    - [Compare experiments](/Compare_experiments)
-    - [Save or load model](/Load_model)
+    - [Predict based on data](/Predict_current_model)
 """
 )
