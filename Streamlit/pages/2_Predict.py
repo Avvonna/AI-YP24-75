@@ -1,11 +1,8 @@
 import os
-from json import dumps
-
 import pandas as pd
 import plotly.express as px
 import requests
 from json import dumps
-import matplotlib.pyplot as plt
 from serializer import serialize_datetime
 
 import streamlit as st
