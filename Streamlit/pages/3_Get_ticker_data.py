@@ -6,9 +6,14 @@ import plotly.express as px
 import requests
 from serializer import serialize_datetime
 
+from StLogger import get_logger
+
 import streamlit as st
 
+
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+
+logger = get_logger()
 
 tickers = requests.get(BACKEND_URL+"/api/tickers").content.decode()
 
@@ -40,3 +45,4 @@ if st.button("Get data"):
         st.plotly_chart(fig_2, use_container_width=True)
         fig = px.line(df, x="dates", y="values")
         st.plotly_chart(fig, use_container_width=True)
+        logger.info(f"Get ticker data for {name}")

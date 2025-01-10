@@ -5,6 +5,7 @@ from json import dumps
 import pandas as pd
 import requests
 from serializer import serialize_datetime
+from StLogger import get_logger
 
 import streamlit as st
 
@@ -12,7 +13,7 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 steps = st.number_input("Input number of steps", value=1)
 uploaded_file = st.file_uploader("Choose a file", type="csv")
 st.write('Format of file is csv, delimited with ";" and two columns. Like this:')
@@ -37,3 +38,4 @@ if send_btn:
         st.write(train_response.json()["forecast"][0])
         st.write("Lower end of confidence_intervals:")
         st.write(train_response.json()["confidence_intervals"])
+        logger.info("Successfully predicted for current model")
