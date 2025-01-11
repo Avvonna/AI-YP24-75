@@ -5,6 +5,7 @@ from pathlib import Path
 
 logger = None
 def get_logger():
+    """Singleton for logger with handlers"""
     global logger
     if logger is None:
         log_dir = Path("/app/logs")

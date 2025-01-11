@@ -19,13 +19,13 @@ start_date = st.date_input("Enter start date")
 end_date = st.number_input("Enter forecast_period", value=10, min_value=1, max_value=100)
 if st.button('Predict'):
     response = requests.post(BACKEND_URL+'/api/predict', data=dumps({'ticker': name, 'base_date': start_date.isoformat(), 'forecast_period': end_date}, default=serialize_datetime))
-    historical_data = requests.post(BACKEND_URL+'/api/ticker-data', data=dumps({'ticker': name, 'start_date': (pd.to_datetime(start_date) - pd.Timedelta(days=60)).isoformat(), 'end_date': start_date.isoformat()}, default=serialize_datetime))
     if response.status_code == 200:
         st.write("Prediction results")
         js = response.json()
+        historical_data = response.json()['history']
         df = pd.DataFrame({"dates": js["forecast_dates"], "values": js["forecast_values"]})
         df = pd.DataFrame({'dates': js['forecast_dates'], 'values': js['forecast_values']})
-        hist = pd.DataFrame({'dates': historical_data.json()['dates'], 'values': historical_data.json()['values']})
+        hist = pd.DataFrame({'dates': historical_data['dates'], 'values': historical_data['values']})
         st.write(df)
         df = pd.DataFrame({"dates": js["forecast_dates"], "values": js["forecast_values"]})
         fig = px.line(df, x="dates", y="values")
