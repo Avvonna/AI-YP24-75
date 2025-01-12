@@ -24,7 +24,11 @@ class ModelConfig(BaseModel):
    seasonal: bool = Field(default=True, description="Учитывать ли сезонность")
    seasonal_period: Optional[int] = Field(default=7, ge=1, description="Период сезонности")
    max_p: int = Field(default=5, description="Максимальный порядок AR члена")
-
+   max_P: int = Field(default=6, description="Максимальный порядок сезонного AR члена")
+   max_d: int = Field(default=5, description="Максимальный порядок I члена")
+   max_D: int = Field(default=6, description="Максимальный порядок сезонного I члена")
+   max_q: int = Field(default=5, description="Максимальный порядок MA члена")
+   max_Q: int = Field(default=6, description="Максимальный порядок сезонного MA члена")
    @field_validator("seasonal_period")
    def validate_seasonal_period(cls, v: Optional[int], values: dict[str, Any]) -> Optional[int]:
        if values.get("seasonal") and (v is None or v < 1):
@@ -51,6 +55,7 @@ class CurrentModelPredictRequest(BaseModel):
    """Запрос прогноза текущей модели"""
    data: list[float] = Field(..., min_items=60, description="Исторические данные")
    steps: int = Field(default=10, ge=1, description="Количество шагов прогноза")
+   config: ModelConfig
 
    @field_validator("data")
    def validate_data(cls, v: list[float]) -> list[float]:

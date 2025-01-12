@@ -128,7 +128,7 @@ class MLService:
             logger.error(f"Ошибка при прогнозировании: {str(e)}")
             raise ValueError(f"Ошибка при прогнозировании: {str(e)}") from e
 
-    def predict_current_model(self, data: list[float], steps: int) -> tuple[list[float], dict[str, list[float]]]:
+    def predict_current_model(self, data: list[float], steps: int, config: ModelConfig) -> tuple[list[float], dict[str, list[float]]]:
         try:
             logger.info(f"Прогнозирование current_model на {steps} шагов")
 
@@ -144,7 +144,12 @@ class MLService:
                 values,
                 seasonal=True,
                 m=7,
-                max_p=5,
+                max_p=config.max_p,
+                max_d=config.max_d,
+                max_q=config.max_q,
+                max_P=config.max_P,
+                max_D=config.max_D,
+                max_Q=config.max_Q,
                 error_action="ignore",
                 suppress_warnings=True,
                 stepwise=True

@@ -134,7 +134,8 @@ async def predict_current_model(
        logger.info(f"Прогноз current_model на {request.steps} шагов")
        forecast, intervals = ml_service.predict_current_model(
            request.data,
-           request.steps
+           request.steps,
+           request.config
        )
        return {
            "forecast": forecast,
