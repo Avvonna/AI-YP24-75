@@ -25,6 +25,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "statsmodels>=0.14.4",
     "streamlit>=1.41.1",
+    "torch>=2.7.0",
     "uvicorn>=0.34.0",
 ]
 
@@ -32,6 +33,19 @@ dependencies = [
 dev = [
     "ipykernel>=6.29.5",
 ]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
 
 [tool.ruff]
 line-length = 120
