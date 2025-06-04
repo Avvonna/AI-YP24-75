@@ -1,5 +1,4 @@
-import logging
-from logging import getLogger, INFO, Formatter, StreamHandler
+from logging import INFO, Formatter, StreamHandler, getLogger
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
@@ -14,7 +13,7 @@ def get_logger():
         formatter = Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        rotated_handler = TimedRotatingFileHandler(str(log_dir)+"/font_logs.txt", when='midnight')
+        rotated_handler = TimedRotatingFileHandler(str(log_dir)+"/front.log", when="midnight")
         rotated_handler.setFormatter(formatter)
         rotated_handler.setLevel(INFO)
         logger.addHandler(rotated_handler)
