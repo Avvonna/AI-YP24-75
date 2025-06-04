@@ -12,7 +12,7 @@ class ExperimentManager:
     def save(self, name: str, model, config, metrics, history):
         self.experiments[name] = {
             "model": model,
-            "config": config.dict(),
+            "config": config.model_dump(),
             "metrics": metrics,
             "training_history": history["values"],
             "training_dates": history["dates"]

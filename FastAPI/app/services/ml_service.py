@@ -1,19 +1,19 @@
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 from app.models.schemas import TimeSeriesData
 from app.services.data_manager import DataManager
 from app.services.experiment_manager import ExperimentManager
-from app.services.model_predictor import ModelPredictor
 from app.services.model_registry import ModelRegistry
 
+DATA_PATH = Path(__file__).resolve().parent / "init_data.csv"
 
 class MLService:
     def __init__(self):
         self.tickers = ["LKOH", "ROSN", "SIBN", "SNGS", "TATN"]
-        self.data_manager = DataManager("app/services/init_data.csv", self.tickers)
+        self.data_manager = DataManager(str(DATA_PATH), self.tickers)
         self.registry = ModelRegistry()
-        self.predictor = ModelPredictor()
         self.experiments = ExperimentManager()
         self.current_model = "auto_arima"
 
@@ -49,8 +49,7 @@ class MLService:
             experiment_name=f"{ticker}_{base_date}_{self.current_model}"
         )
 
-        trainer_cls = self.registry.get_trainer(self.current_model)
-        trainer = trainer_cls()
+        trainer = self.registry.get_trainer(self.current_model)
         model, metrics = trainer.train(ts_data, config)
 
         forecast, conf = trainer.predict(forecast_period)
@@ -67,9 +66,10 @@ class MLService:
         }
 
     def predict_current_model(self, data: list[float], steps: int, config):
-        trainer_cls = self.registry.get_trainer(self.current_model)
-        trainer = trainer_cls()
+        trainer = self.registry.get_trainer(self.current_model)
         return trainer.predict_from_data(data, steps, config)
 
     def compare_experiments(self, names: list[str]):
         return self.experiments.compare(names)
+
+ml_service = MLService()

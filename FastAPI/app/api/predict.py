@@ -1,5 +1,3 @@
-# FastAPI/app/api/predict.py
-
 from typing import Annotated, Any
 
 from app.models.schemas import CurrentModelPredictRequest, PredictRequest

@@ -35,6 +35,7 @@ class PredictRequest(BaseModel):
     ticker: str = Field(..., description="Название тикера")
     base_date: str = Field(..., description="Дата для прогноза")
     forecast_period: int = Field(default=10, ge=1, description="Горизонт прогнозирования")
+    config: Optional[ModelConfigUnion] = None
 
     @field_validator("forecast_period")
     def validate_forecast_period(cls, v: int) -> int:
@@ -45,7 +46,7 @@ class PredictRequest(BaseModel):
 
 class CurrentModelPredictRequest(BaseModel):
     """Запрос прогноза текущей модели"""
-    data: list[float] = Field(..., min_items=60, description="Исторические данные")
+    data: list[float] = Field(..., min_length=60, description="Исторические данные")
     steps: int = Field(default=10, ge=1, description="Количество шагов прогноза")
     config: ModelConfigUnion
 
@@ -85,7 +86,7 @@ class HistoricalDataRequest(BaseModel):
 
 class ExperimentComparisonRequest(BaseModel):
     """Запрос на сравнение экспериментов"""
-    experiment_names: list[str] = Field(..., min_items=1, description="Список имён экспериментов для сравнения")
+    experiment_names: list[str] = Field(..., min_length=1, description="Список имён экспериментов для сравнения")
 
     @field_validator("experiment_names")
     def validate_experiment_names(cls, v: list[str]) -> list[str]:

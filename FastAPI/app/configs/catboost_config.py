@@ -1,5 +1,6 @@
-from app.models.base_model import BaseModelConfig
 from pydantic import Field
+
+from app.configs.base_config import BaseModelConfig
 
 
 class CatBoostConfig(BaseModelConfig):
