@@ -2,6 +2,8 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+from app.configs.arima_config import AutoARIMAConfig
+from app.configs.catboost_config import CatBoostConfig
 from app.models.schemas import TimeSeriesData
 from app.services.data_manager import DataManager
 from app.services.experiment_manager import ExperimentManager
@@ -46,12 +48,20 @@ class MLService:
         ts_data = TimeSeriesData(
             dates=dates,
             values=values,
-            experiment_name=f"{ticker}_{base_date}_{self.current_model}"
+            experiment_name=f"{ticker}_{base_date}_{config.model_type}"
         )
 
-        trainer = self.registry.get_trainer(self.current_model)
-        model, metrics = trainer.train(ts_data, config)
+        model_type = getattr(config, "model_type", self.current_model)
+        trainer = self.registry.get_trainer(model_type)
 
+        if model_type == "auto_arima":
+            assert isinstance(config, AutoARIMAConfig), "Конфигурация должна быть AutoARIMAConfig"
+        elif model_type == "catboost":
+            assert isinstance(config, CatBoostConfig), "Конфигурация должна быть CatBoostConfig"
+        else:
+            raise ValueError(f"Неподдерживаемый тип модели: {model_type}")
+
+        model, metrics = trainer.train(ts_data, config)
         forecast, conf = trainer.predict(forecast_period)
 
         self.experiments.save(ts_data.experiment_name, model, config, metrics, {"dates": dates, "values": values})
@@ -66,7 +76,8 @@ class MLService:
         }
 
     def predict_current_model(self, data: list[float], steps: int, config):
-        trainer = self.registry.get_trainer(self.current_model)
+        model_type = getattr(config, "model_type", self.current_model)
+        trainer = self.registry.get_trainer(model_type)
         return trainer.predict_from_data(data, steps, config)
 
     def compare_experiments(self, names: list[str]):

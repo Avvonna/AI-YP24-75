@@ -1,7 +1,11 @@
-from app.api import experiments, health, model, predict, tickers
+import warnings
+
+from app.api import experiments, health, models, predict, tickers
 from app.utils.logging_config import setup_logging
 
 from fastapi import FastAPI
+
+warnings.filterwarnings("ignore", message="'force_all_finite' was renamed")
 
 logger = setup_logging()
 
@@ -12,7 +16,7 @@ app = FastAPI(
 )
 
 app.include_router(tickers.router)
-app.include_router(model.router)
+app.include_router(models.router)
 app.include_router(predict.router)
 app.include_router(experiments.router)
 app.include_router(health.router)

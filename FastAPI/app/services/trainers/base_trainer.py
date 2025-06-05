@@ -12,5 +12,7 @@ class BaseModelTrainer(ABC):
         pass
 
     @abstractmethod
-    def predict_from_data(self, data: list[float], steps: int, config: Any) -> tuple[list[float], dict[str, list[float]]]:
+    def predict_from_data(
+        self, data: list[float], steps: int, config: Any
+    ) -> tuple[list[float], dict[str, list[float]]]:
         pass

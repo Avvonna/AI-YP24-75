@@ -5,11 +5,12 @@ from app.services.ml_service import ml_service
 
 from fastapi import APIRouter, HTTPException
 
-router = APIRouter(prefix="/api/model", tags=["Model"])
+router = APIRouter(prefix="/api/models", tags=["Models"])
 
-@router.post("/select")
+@router.post("/select", response_model=dict[str, str])
 async def select_model(request: Annotated[ModelSelectRequest, "Выбор модели"]):
     try:
-        return ml_service.set_model(request.model_name)
+        ml_service.set_model(request.model_name)
+        return {"status": "model selected"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
