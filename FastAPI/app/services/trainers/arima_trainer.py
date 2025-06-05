@@ -40,8 +40,8 @@ class AutoARIMATrainer(BaseModelTrainer):
 
             self.model = model
             metrics = self._calculate_metrics(model, df["value"])
-            logger.info(f"Обучение завершено. Метрики: AIC={metrics['aic']}, BIC={metrics['bic']}, "
-                        f"MSE={metrics['mse']}, MAE={metrics['mae']}")
+            logger.info(f"Обучение завершено. Метрики: AIC={metrics['aic']:.2f}, BIC={metrics['bic']:.2f}, "
+                        f"MSE={metrics['mse']:.2f}, MAE={metrics['mae']:.2f}")
             return model, metrics
 
         except Exception:
