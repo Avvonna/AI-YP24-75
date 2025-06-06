@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Optional, Union
-
+import pandas as pd
 import numpy as np
 from app.configs.arima_config import AutoARIMAConfig
 from app.configs.catboost_config import CatBoostConfig
 from pydantic import BaseModel, Field, field_validator
-
 # Объединённый тип конфигурации моделей
 ModelConfigUnion = Union[AutoARIMAConfig, CatBoostConfig]
 
@@ -59,8 +58,8 @@ class CurrentModelPredictRequest(BaseModel):
 
 class HistoricalDataRequest(BaseModel):
     """Запрос исторических данных"""
-    start_date: Optional[str] = Field(..., description="Начальная дата")
-    end_date: Optional[str] = Field(..., description="Конечная дата")
+    start_date: Optional[str] = Field(None, description="Начальная дата")
+    end_date: Optional[str] = Field(None, description="Конечная дата")
 
     @field_validator("start_date", "end_date", mode="before")
     def validate_date_format(cls, v: Optional[str]) -> Optional[str]:
@@ -93,3 +92,34 @@ class ExperimentComparisonRequest(BaseModel):
         if len(v) != len(set(v)):
             raise ValueError("Дублирование имён экспериментов не допускается")
         return v
+
+
+class SingleTickerData(BaseModel):
+    """Добавление данных о новом тикере"""
+    date: datetime
+    value: float
+
+    @classmethod
+    def validate_dataframe(cls, df: pd.DataFrame, ticker: str) -> pd.DataFrame:
+        if 'date' not in df.columns:
+            raise ValueError("DataFrame должен содержать колонку 'date'")
+
+        if ticker not in df.columns:
+            raise ValueError(f"DataFrame должен содержать колонку '{ticker}'")
+
+        if not pd.api.types.is_datetime64_any_dtype(df['date']):
+            try:
+                df['date'] = pd.to_datetime(df['date'])
+            except Exception as e:
+                raise ValueError(f"Не удалось преобразовать"
+                                 f"колонку 'date' в datetime: {str(e)}")
+
+        if not pd.api.types.is_numeric_dtype(df[ticker]):
+            raise ValueError(f"Колонка {ticker}"
+                             f"должна содержать числовые значения")
+
+        return (
+            df[['date', ticker]]
+            .rename(columns={ticker: f'{ticker}'})
+            .sort_values('date')
+        )

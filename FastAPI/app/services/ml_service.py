@@ -1,6 +1,4 @@
 from datetime import datetime
-from pathlib import Path
-
 import pandas as pd
 from app.configs.arima_config import AutoARIMAConfig
 from app.configs.catboost_config import CatBoostConfig
@@ -9,35 +7,73 @@ from app.services.data_manager import DataManager
 from app.services.experiment_manager import ExperimentManager
 from app.services.model_registry import ModelRegistry
 
-DATA_PATH = Path(__file__).resolve().parent / "init_data.csv"
 
 class MLService:
+    """В классе реализованы методы для работы с моделями"""
     def __init__(self):
-        self.tickers = ["LKOH", "ROSN", "SIBN", "SNGS", "TATN"]
-        self.data_manager = DataManager(str(DATA_PATH), self.tickers)
+        """
+        Инициализирует MLService
+
+        Atributes:
+        data_manger: Методы для работы с данными
+        tickers (list): Список доступных тикеров
+        registry: Доступные модели
+        experiments: Методы для работы с результатами экспериментов
+        current_model: Текущая модель
+        """
+        self.data_manager = DataManager()
+        self.tickers = self.data_manager.tickers
         self.registry = ModelRegistry()
         self.experiments = ExperimentManager()
         self.current_model = "auto_arima"
 
     def set_model(self, model_name: str):
+        """
+        Устанавливает модель
+        Args:
+            model_name: Название модели
+        """
         if model_name not in self.registry.models:
             raise ValueError(f"Модель '{model_name}' не поддерживается.")
         self.current_model = model_name
         return {"status": "модель выбрана", "model": model_name}
 
     def get_available_tickers(self):
+        """Возвращает список доступных тикеров"""
         return self.tickers
 
-    def add_ticker(self, ticker: str):
-        if ticker not in self.tickers:
-            self.tickers.append(ticker)
+    def add_ticker_data(self, ticker: str, data: pd.DataFrame):
+        """
+        Добавляет данные нового тикера или
+        обновляет данные уже имеющегося тикера
+        Args:
+            ticker: Название добавляемого тикера
+            data: DataFrame с данными добавляемого тикера
+        """
+        return self.data_manager.add_ticker_data(ticker, data)
 
     def remove_ticker(self, ticker: str):
-        if ticker in self.tickers:
-            self.tickers.remove(ticker)
+        """
+        Удаляет тикер из списка доступных тикеров,
+        а так же удаляет данные тикера
+        Args:
+            ticker: Название удаляемого тикера
+        """
+        return self.data_manager.remove_ticker(ticker)
 
     def get_ticker_history(self, ticker, start_date, end_date):
-        return self.data_manager.get_ticker_history(ticker, start_date, end_date)
+        """
+        Возвращает отфильтрованные по дате данные тикера,
+        если временные рамки не указаны, то возвращает все данные
+        Args:
+            ticker: Название тикера
+            start_date: Дата начала периода
+            end_date: Дата окончания периода
+        """
+        return self.data_manager.get_ticker_history(
+            ticker,
+            start_date,
+            end_date)
 
     def train_and_predict(self, ticker: str, base_date: str, forecast_period: int, config):
         base_dt = datetime.fromisoformat(base_date)
@@ -82,5 +118,6 @@ class MLService:
 
     def compare_experiments(self, names: list[str]):
         return self.experiments.compare(names)
+
 
 ml_service = MLService()
