@@ -4,6 +4,7 @@ from .schemas import (
     ModelSelectRequest,
     PredictRequest,
     TimeSeriesData,
+    SingleTickerData
 )
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "ModelSelectRequest",
     "PredictRequest",
     "HistoricalDataRequest",
-    "ExperimentComparisonRequest"
+    "ExperimentComparisonRequest",
+    "SingleTickerData"
 ]

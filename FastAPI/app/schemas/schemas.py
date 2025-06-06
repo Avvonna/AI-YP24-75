@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-
+import pandas as pd
 import numpy as np
 from app.configs import ModelConfigUnion
 from pydantic import BaseModel, Field, field_validator
@@ -20,9 +20,11 @@ class TimeSeriesData(BaseModel):
             raise ValueError("Все значения должны быть числовыми")
         return v
 
+
 class ModelSelectRequest(BaseModel):
     """Запрос на выбор модели"""
     model_name: str = Field(..., description="Название модели")
+
 
 class PredictRequest(BaseModel):
     """Запрос на прогнозирование"""
@@ -36,6 +38,7 @@ class PredictRequest(BaseModel):
         if v < 1:
             raise ValueError("Период прогнозирования должен быть положительным")
         return v
+
 
 class HistoricalDataRequest(BaseModel):
     """Запрос исторических данных"""
@@ -63,6 +66,7 @@ class HistoricalDataRequest(BaseModel):
             raise ValueError("Конечная дата должна быть больше начальной.")
         return v
 
+
 class ExperimentComparisonRequest(BaseModel):
     """Запрос на сравнение экспериментов"""
     experiment_names: list[str] = Field(..., min_length=1, description="Список имён экспериментов для сравнения")
@@ -72,3 +76,34 @@ class ExperimentComparisonRequest(BaseModel):
         if len(v) != len(set(v)):
             raise ValueError("Дублирование имён экспериментов не допускается")
         return v
+
+
+class SingleTickerData(BaseModel):
+    """Добавление данных о новом тикере"""
+    date: datetime
+    value: float
+
+    @classmethod
+    def validate_dataframe(cls, df: pd.DataFrame, ticker: str) -> pd.DataFrame:
+        if 'date' not in df.columns:
+            raise ValueError("DataFrame должен содержать колонку 'date'")
+
+        if ticker not in df.columns:
+            raise ValueError(f"DataFrame должен содержать колонку '{ticker}'")
+
+        if not pd.api.types.is_datetime64_any_dtype(df['date']):
+            try:
+                df['date'] = pd.to_datetime(df['date'])
+            except Exception as e:
+                raise ValueError(f"Не удалось преобразовать"
+                                 f"колонку 'date' в datetime: {str(e)}")
+
+        if not pd.api.types.is_numeric_dtype(df[ticker]):
+            raise ValueError(f"Колонка {ticker}"
+                             f"должна содержать числовые значения")
+
+        return (
+            df[['date', ticker]]
+            .rename(columns={ticker: f'{ticker}'})
+            .sort_values('date')
+        )
