@@ -1,14 +1,13 @@
-# app/services/trainers/lstm_trainer.py
 import logging
 
 import numpy as np
 import pandas as pd
 import torch
 from app.configs import LSTMConfig
-from app.models.nn_models import LSTMForecaster, TimeSeriesDataset, fit_model
-from app.services.data_manager import DataManager
-from app.services.feature_engineering import create_time_features, update_extended_features_lastrow
-from app.services.trainers.base_trainer import BaseModelTrainer
+from app.core import DataManager
+from app.features import create_time_features, update_extended_features_lastrow
+from app.models.nn import LSTMForecaster, TimeSeriesDataset, fit_model
+from app.trainers import BaseModelTrainer
 from torch import nn
 from torch.utils.data import DataLoader
 

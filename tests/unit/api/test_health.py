@@ -8,8 +8,8 @@ from fastapi import FastAPI
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../FastAPI")))
 
-from app.api.health import router as health_router
-from app.services.ml_service import ml_service
+from app.api.routers.health import router as health_router
+from app.core.ml_service import ml_pipeline
 
 app = FastAPI()
 app.include_router(health_router)
@@ -33,4 +33,4 @@ async def test_info_endpoint():
 
     assert response.status_code == 200
     assert "model" in response.json()
-    assert response.json()["model"] == ml_service.current_model
+    assert response.json()["model"] == ml_pipeline.current_model

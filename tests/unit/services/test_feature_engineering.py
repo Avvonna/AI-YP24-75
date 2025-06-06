@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from app.services.feature_engineering import create_extended_features, update_extended_features_lastrow
+from app.features import create_extended_features, update_extended_features_lastrow
 
 
 def generate_test_df(n=100):

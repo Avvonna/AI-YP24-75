@@ -1,7 +1,7 @@
 import warnings
 
-from app.api import experiments, health, models, predict, tickers
-from app.utils.logging_config import setup_logging
+from app.api.routers import experiments, health, models, predict, tickers
+from app.utils import setup_logging
 
 from fastapi import FastAPI
 

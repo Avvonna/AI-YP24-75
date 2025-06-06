@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../FastAPI")))
 
-from app.api.experiments import router as experiments_router
+from app.api.routers.experiments import router as experiments_router
 
 app = FastAPI()
 app.include_router(experiments_router)
@@ -24,7 +24,7 @@ class FakeMLService:
 @pytest.mark.asyncio
 async def test_experiments_compare_success(monkeypatch):
     fake_service = FakeMLService()
-    monkeypatch.setattr("app.api.experiments.ml_service", fake_service)
+    monkeypatch.setattr("app.api.routers.experiments.ml_pipeline", fake_service)
 
     request_data = {
         "experiment_names": ["exp1", "exp2"]
@@ -41,7 +41,7 @@ async def test_experiments_compare_success(monkeypatch):
 @pytest.mark.asyncio
 async def test_experiments_compare_empty(monkeypatch):
     fake_service = FakeMLService()
-    monkeypatch.setattr("app.api.experiments.ml_service", fake_service)
+    monkeypatch.setattr("app.api.routers.experiments.ml_pipeline", fake_service)
 
     request_data = {
         "experiment_names": []

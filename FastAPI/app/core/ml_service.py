@@ -2,10 +2,8 @@ from datetime import datetime
 
 import pandas as pd
 from app.configs import AutoARIMAConfig, CatBoostConfig, LSTMConfig
-from app.models.schemas import TimeSeriesData
-from app.services.data_manager import DataManager
-from app.services.experiment_manager import ExperimentManager
-from app.services.model_registry import ModelRegistry
+from app.core import DataManager, ExperimentManager, ModelRegistry
+from app.schemas import TimeSeriesData
 
 
 class MLService:
@@ -77,4 +75,4 @@ class MLService:
     def compare_experiments(self, names: list[str]):
         return self.experiments.compare(names)
 
-ml_service = MLService()
+ml_pipeline = MLService()

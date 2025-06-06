@@ -3,9 +3,10 @@ import logging
 import numpy as np
 import pandas as pd
 from app.configs import AutoARIMAConfig
-from app.services.data_manager import DataManager
-from app.services.trainers.base_trainer import BaseModelTrainer
+from app.core import DataManager
 from pmdarima import auto_arima
+
+from .base_trainer import BaseModelTrainer
 
 logger = logging.getLogger(__name__)
 

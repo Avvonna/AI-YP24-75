@@ -1,7 +1,7 @@
 from typing import Any
 
-from app.models.schemas import ExperimentComparisonRequest
-from app.services.ml_service import ml_service
+from app.core.ml_service import ml_pipeline
+from app.schemas import ExperimentComparisonRequest
 
 from fastapi import APIRouter, HTTPException
 
@@ -10,6 +10,6 @@ router = APIRouter(prefix="/api/experiments", tags=["Experiments"])
 @router.post("/compare", response_model=dict[str, Any])
 async def compare_experiments(request: ExperimentComparisonRequest):
     try:
-        return ml_service.compare_experiments(request.experiment_names)
+        return ml_pipeline.compare_experiments(request.experiment_names)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

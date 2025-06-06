@@ -1,9 +1,6 @@
-from app.services.data_manager import DataManager
-from app.services.trainers.arima_trainer import AutoARIMATrainer
-from app.services.trainers.catboost_trainer import CatBoostTrainer
-from app.services.trainers.lstm_trainer import LSTMTrainer
+from app.core import DataManager
+from app.trainers import AutoARIMATrainer, CatBoostTrainer, LSTMTrainer
 
-# from app.services.trainers.lstm_trainer import LSTMTrainer
 
 class ModelRegistry:
     def __init__(self, data_manager: DataManager):

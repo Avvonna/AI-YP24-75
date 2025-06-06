@@ -1,4 +1,4 @@
-from app.services.ml_service import ml_service
+from app.core.ml_service import ml_pipeline
 
 from fastapi import APIRouter
 
@@ -10,4 +10,4 @@ def health_check():
 
 @router.get("/info")
 def info():
-    return {"model": ml_service.current_model}
+    return {"model": ml_pipeline.current_model}

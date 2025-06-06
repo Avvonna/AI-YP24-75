@@ -3,9 +3,9 @@ import logging
 import numpy as np
 import pandas as pd
 from app.configs import CatBoostConfig
-from app.services.data_manager import DataManager
-from app.services.feature_engineering import create_time_features, update_extended_features_lastrow
-from app.services.trainers.base_trainer import BaseModelTrainer
+from app.core import DataManager
+from app.features import create_time_features, update_extended_features_lastrow
+from app.trainers import BaseModelTrainer
 from catboost import CatBoostRegressor
 
 logger = logging.getLogger(__name__)

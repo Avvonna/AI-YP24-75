@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from app.configs import AutoARIMAConfig, CatBoostConfig
-from app.services.ml_service import MLService
+from app.core.ml_service import MLService
 
 
 @pytest.fixture
-def ml_service():
+def ml_pipeline():
     return MLService()
 
 @pytest.fixture
@@ -22,12 +22,12 @@ def fake_data():
     ("auto_arima", AutoARIMAConfig),
     ("catboost", CatBoostConfig),
 ])
-@patch("app.services.ml_service.ModelRegistry.get_trainer")
-@patch("app.services.ml_service.DataManager.filter_data_for_training")
-@patch("app.services.ml_service.ExperimentManager.save")
+@patch("app.core.ml_service.ModelRegistry.get_trainer")
+@patch("app.core.ml_service.DataManager.filter_data_for_training")
+@patch("app.core.ml_service.ExperimentManager.save")
 def test_train_and_predict_mocked_models(
     mock_save, mock_filter, mock_get_trainer,
-    ml_service, fake_data, model_type, config_class
+    ml_pipeline, fake_data, model_type, config_class
 ):
     mock_filter.return_value = fake_data
 
@@ -44,7 +44,7 @@ def test_train_and_predict_mocked_models(
 
     config = config_class(model_type=model_type)
 
-    result = ml_service.train_and_predict(
+    result = ml_pipeline.train_and_predict(
         ticker="LKOH",
         base_date="2024-01-03",
         forecast_period=2,

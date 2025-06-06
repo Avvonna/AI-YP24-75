@@ -3,7 +3,7 @@ import pickle
 from pathlib import Path
 
 import pandas as pd
-from app.services.feature_engineering import preprocess_for_model
+from app.features import preprocess_for_model
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
