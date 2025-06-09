@@ -1,10 +1,14 @@
 import logging
-import pickle
+from datetime import date
 from pathlib import Path
-from typing import Any, List
+
 import pandas as pd
+from app.core.csv_loader import CSVLoader
+from app.core.feature_cache import FeatureCache
 from app.features import preprocess_for_model
-from app.schemas import SingleTickerData
+from app.schemas import TickerHistory
+from app.utils import validate_dataframe
+from typing import Optional
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -16,63 +20,21 @@ logger = logging.getLogger(__name__)
 
 
 class DataManager:
-    """В классе реализованы методы для работы с данными котировок"""
-    def __init__(self, csv_path: str | Path = DATA_DIR):
-        """
-        Инициализирует DataManager
-
-        Attributes:
-            csv_path (Path): Путь к директории с данными доступных тикеров
-            tickers (List): Список доступных тикеров
-            data (pd.DataFrame): DataFrame с данными тикеров
-        """
+    def __init__(self, csv_path: Path = DATA_DIR):
         self.csv_path = Path(csv_path)
         if not self.csv_path.exists():
-            raise FileNotFoundError(
-                f"CSV-файл не найден: {self.csv_path.resolve()}"
-                )
-        self.tickers: list[str] = self._search_available_tickers()
-        self.data: pd.DataFrame = self._load_all_data()
-        self.feature_cache = {}
-        logger.info(
-            f"Загружено {len(self.data)}"
-            f"строк данных из {self.csv_path}")
+            raise FileNotFoundError(f"Каталог не найден: {self.csv_path.resolve()}")
 
-    def _search_available_tickers(self) -> List[str]:
-        """
-        Проверяет наличие доступных данных
-        и возвращает список доступных тикеров
-        """
-        tickers = []
-        for file in self.csv_path.glob('*.csv'):
-            ticker = file.stem.upper()
-            tickers.append(ticker)
-        return tickers
-
-    def _load_all_data(self) -> dict:
-        """
-        Загружает данные доступных тикеров и 
-        возвращает словарь датафреймов, в котором
-        ключами являются названия тикеров
-        """
-        data = {}
-        for ticker in self.tickers:
-            file_path = self.csv_path / f"{ticker}.csv"
-            try:
-                df = pd.read_csv(file_path, parse_dates=["date"])
-                df.sort_index(inplace=True)
-                data[ticker] = df
-                logger.debug(f"Загружены данные для {ticker}")
-            except Exception as e:
-                logger.error(f"Ошибка загрузки {file_path}: {str(e)}")
-                data[ticker] = pd.DataFrame()
-        return data
+        self.loader = CSVLoader(self.csv_path)
+        self.feature_cache = FeatureCache()
+        self.tickers = self.loader.list_tickers()
+        self.data = {ticker: self.loader.load_ticker(ticker) for ticker in self.tickers}
 
     def get_available_tickers(self) -> list[str]:
         """Возвращает список доступных тикеров"""
         return self.tickers
 
-    def add_ticker_data(self, ticker: str, data: pd.DataFrame) -> None:
+    def add_ticker_data(self, ticker: str, new_data: pd.DataFrame):
         """
         Добавляет данные нового тикера или
         обновляет данные уже имеющегося тикера
@@ -81,46 +43,19 @@ class DataManager:
             data: DataFrame с данными добавляемого тикера
         """
         ticker = ticker.upper()
-        data.columns = [
-            col.upper() if col != "date" else col
-            for col in data.columns
-            ]
+        new_data.columns = [col.upper() if col != "date" else col for col in new_data.columns]
+        validated_df = validate_dataframe(new_data, ticker)
 
-        try:
-            validated_df = SingleTickerData.validate_dataframe(data, ticker)
-            if ticker not in self.tickers:
-                self.tickers.append(ticker)
-                logger.info(f"Добавлен новый тикер: {ticker}")
-            if ticker in self.data:
-                existing_data = self.data[ticker]
-                updated_data = (
-                    pd.concat([existing_data, validated_df])
-                    .drop_duplicates("date")
-                    .sort_values("date")
-                )
-                self.data[ticker] = updated_data
-                logger.info(f"Данные для тикера {ticker} обновлены")
-            else:
-                self.data[ticker] = validated_df
-                logger.info(f"Добавлены новые данные для тикера {ticker}")
+        current_df = self.data.get(ticker, pd.DataFrame())
+        updated_df = pd.concat([current_df, validated_df]).drop_duplicates("date").sort_values("date")
+        self.data[ticker] = updated_df
 
-        except Exception as e:
-            logger.error(f"Ошибка добавления данных для {ticker}: {str(e)}")
-            raise
-        file_path = self.csv_path / f"{ticker}.csv"
+        if ticker not in self.tickers:
+            self.tickers.append(ticker)
 
-        try:
-            data.to_csv(file_path, index=False)
-            if ticker not in self.tickers:
-                self.tickers.append(ticker)
-                logger.info(f"Добавлен новый тикер: {ticker}")
-            logger.info(f"Данные для {ticker} сохранены в {file_path}")
+        self.loader.save_ticker(ticker, updated_df)
 
-        except Exception as e:
-            logger.error(f"Ошибка сохранения данных для {ticker}: {str(e)}")
-            raise
-
-    def remove_ticker(self, ticker: str) -> None:
+    def remove_ticker(self, ticker: str):
         """
         Удаляет тикер из списка доступных тикеров,
         а так же удаляет данные тикера
@@ -128,32 +63,20 @@ class DataManager:
             ticker: Название удаляемого тикера
         """
         ticker = ticker.upper()
-
         if ticker not in self.tickers:
             logger.warning(f"Тикер {ticker} не найден")
             return
-        file_path = self.csv_path / f"{ticker}.csv"
-        try:
-            if file_path.exists():
-                file_path.unlink()
-                logger.info(f"Данные тикера {file_path} удален")
-        except Exception as e:
-            logger.error(
-                f"Ошибка удаления данных тикера {file_path}: {str(e)}"
-                )
-            raise
 
+        self.loader.delete_ticker(ticker)
         self.tickers.remove(ticker)
-
         del self.data[ticker]
-        logger.info(f"Тикер {ticker} полностью удален")
 
     def get_ticker_history(
-            self,
-            ticker: str,
-            start_date: str = None,
-            end_date: str = None
-            ) -> dict[str, Any]:
+        self,
+        ticker: str,
+        start_date: Optional[pd.Timestamp],
+        end_date: Optional[pd.Timestamp]
+    ) -> TickerHistory:
         """
         Возвращает отфильтрованные по дате данные тикера,
         если временные рамки не указаны, то возвращает все данные
@@ -162,49 +85,25 @@ class DataManager:
             start_date: Дата начала периода
             end_date: Дата окончания периода
         """
-
         ticker = ticker.upper()
+        if ticker not in self.data:
+            raise ValueError(f"Тикер '{ticker}' не найден")
 
-        if ticker not in self.tickers:
-            raise ValueError(f'{ticker} не найден')
+        df = self.data[ticker].copy()
+        df = df.dropna(subset=[ticker])
+        start = df["date"].min() if pd.isna(start_date) else start_date
+        end = df["date"].max() if pd.isna(end_date) else end_date
 
-        try:
-            temp_df = self.data[ticker].copy()
-            valid_data = temp_df.dropna(subset=[ticker])
-            min_date = valid_data["date"].min()
-            max_date = valid_data["date"].max()
+        mask = (df["date"] >= start) & (df["date"] <= end)
+        df = df.loc[mask]
 
-            if start_date is None:
-                start_date = min_date
-            else:
-                start_date = pd.to_datetime(start_date)
+        return TickerHistory(
+            ticker=ticker,
+            dates=df["date"].dt.strftime("%Y-%m-%d").tolist(),
+            values=df[ticker].tolist()
+        )
 
-            if end_date is None:
-                end_date = max_date
-            else:
-                end_date = pd.to_datetime(end_date)
-            mask = (
-                (temp_df["date"] >= start_date)
-                & (temp_df["date"] <= end_date)
-            )
-            filtered_df = temp_df.loc[mask]
-
-            return {
-                "ticker": ticker,
-                "dates": filtered_df["date"].dt.strftime('%Y-%m-%d').tolist(),
-                "values": filtered_df[ticker].tolist(),
-            }
-        except Exception as e:
-            raise Exception(
-                f"Ошибка при получении данных для {ticker}: {str(e)}"
-                ) from e
-
-    def filter_data_for_training(
-            self,
-            ticker: str,
-            base_date: pd.Timestamp,
-            window: int = 60
-            ):
+    def filter_data_for_training(self, ticker: str, base_date: date, window: int = 60):
         """
         Возвращает заданное количество (по умолчанию - 60) timestamps
         до заданной даты
@@ -213,99 +112,29 @@ class DataManager:
             base_date: Конечная дата
             window: Количество timestamps до конечной даты
         """
-        min_date = self.data[ticker]["date"].min()
-        max_date = self.data[ticker]["date"].max()
+        df = self.data[ticker]
 
-        original_base_date = base_date
-        base_date = min(base_date, max_date)
-        border = max(base_date - pd.Timedelta(days=window), min_date)
+        base_date = min(pd.to_datetime(base_date), df["date"].max())
+        border = max(base_date - pd.Timedelta(days=window), df["date"].min())
 
-        df = self.data[ticker][
-            (self.data[ticker]["date"] >= border)
-            & (self.data[ticker]["date"] <= base_date)
-            ]
+        filtered = df[(df["date"] >= border) & (df["date"] <= base_date)]
+        if filtered.empty:
+            raise ValueError(f"Нет данных для '{ticker}' в интервале {border.date()} — {base_date.date()}")
+        return filtered[["date", ticker]]
 
-        if df.empty:
-            logger.warning(
-                f"Пустой DataFrame: тикер='{ticker}', окно={window} дней, "
-                f"дата={original_base_date.date()},"
-                f"обрезано до {base_date.date()}"
-            )
-            raise ValueError(
-                f"Нет данных для тикера '{ticker}'"
-                f"в интервале {border.date()} — {base_date.date()}"
-            )
-
-        if original_base_date != base_date:
-            logger.info(
-                f"Дата base_date обрезана с {original_base_date.date()}"
-                f"до {base_date.date()} "
-                f"(тикер: {ticker})"
-            )
-
-        logger.debug(
-            f"Отобрано {len(df)} строк"
-            f"для обучения по тикеру {ticker}"
-            )
-
-        return df[["date", ticker]]
-
-    def generate_and_cache_features(self):
-        for ticker in self.tickers:
-            df = self.data[ticker][["date", ticker]].copy().dropna()
-            df = df.rename(columns={ticker: "target"}).set_index("date").copy()
-            processed = preprocess_for_model(df, target_column="target")
-            self.feature_cache[ticker] = processed
-            logger.info(f"Сгенерированы признаки для {ticker}: {processed.shape}")
-
-    def save_features(self, path: str | Path = FEATURES_PATH):
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        with path.open("wb") as f:
-            pickle.dump(self.feature_cache, f)
-
-        logger.info(f"Сохранены признаки в {path.resolve()}")
-
-    def load_features(self, path: str | Path = FEATURES_PATH):
-        path = Path(path)
-        if not path.exists():
-            raise FileNotFoundError(f"Файл признаков не найден: {path.resolve()}")
-
-        with path.open("rb") as f:
-            self.feature_cache = pickle.load(f)
-
-        logger.info(f"Загружены признаки из {path.resolve()}")
-
-    def get_features(
-        self, ticker: str,
-        base_date: pd.Timestamp,
-        force_recompute: bool = False
-    ) -> pd.DataFrame:
+    def get_features(self, ticker: str, base_date: pd.Timestamp, force_recompute: bool = False) -> pd.DataFrame:
         if ticker not in self.data:
-            raise ValueError(f"Тикер '{ticker}' отсутствует в исходных данных.")
+            raise ValueError(f"Тикер '{ticker}' отсутствует в данных")
 
-        # Генерация признаков, если тикера нет в кэше или требуется обновление
-        if force_recompute or ticker not in self.feature_cache:
-            logger.info(f"{'Перегенерация' if force_recompute else 'Генерация'} признаков для тикера '{ticker}'")
+        if force_recompute or ticker not in self.feature_cache.get_all():
+            df = self.data[ticker][["date", ticker]].dropna()
+            df = df.rename(columns={ticker: "target"}).set_index("date")
+            features = preprocess_for_model(df, target_column="target")
+            self.feature_cache.add(ticker, features)
 
-            df = self.data[ticker][["date", ticker]].copy().dropna()
-            if df.empty:
-                raise ValueError(f"Нет данных по тикеру '{ticker}' для генерации признаков")
-
-            df = df.rename(columns={ticker: "target"})
-            df.set_index("date", inplace=True)
-
-            processed = preprocess_for_model(df, target_column="target")
-            self.feature_cache[ticker] = processed
-            self.save_features()
-
-            logger.info(f"Признаки по '{ticker}' сгенерированы и добавлены в кэш: {processed.shape}")
-
-        df = self.feature_cache[ticker]
+        df = self.feature_cache.get(ticker)
         df = df[df.index <= base_date]
 
         if df.empty:
-            raise ValueError(f"Нет признаков по тикеру '{ticker}' до {base_date.date()}")
-
+            raise ValueError(f"Нет признаков по '{ticker}' до {base_date.date()}")
         return df

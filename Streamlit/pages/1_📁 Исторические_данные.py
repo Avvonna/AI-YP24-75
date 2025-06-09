@@ -55,15 +55,15 @@ if st.button("Получить данные"):
         if response.status_code == 200:
             js = response.json()
             df = pd.DataFrame({"dates": js["dates"], "values": js["values"]})
-            df["dates"] = pd.to_datetime(df["dates"])
+            df["dates"] = pd.to_datetime(df["dates"]).dt.date
 
             if df.empty:
                 st.warning("⚠️ Нет данных за выбранный период. Проверьте корректность дат и наличие данных у тикера.")
                 logger.warning(f"Пустой датафрейм для тикера {name} за период {start_date} — {end_date}")
                 st.stop()
             else:
-                actual_start = df["dates"].min().date()
-                actual_end = df["dates"].max().date()
+                actual_start = df["dates"].min()
+                actual_end = df["dates"].max()
                 if actual_start != start_date or actual_end != end_date:
                     st.info(
                         f"⚠️ Данные доступны только за период: с {actual_start} по {actual_end}. "

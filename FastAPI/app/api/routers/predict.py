@@ -1,8 +1,7 @@
 import logging
-from typing import Annotated, Any
 
 from app.core.ml_service import ml_pipeline
-from app.schemas import PredictRequest
+from app.schemas import ForecastRequestSchema, ForecastResult
 
 from fastapi import APIRouter, HTTPException
 
@@ -10,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/predictions", tags=["Predictions"])
 
-@router.post("/", response_model=dict[str, Any])
-async def predict(request: Annotated[PredictRequest, "Прогноз по тикеру"]):
+@router.post("/", response_model=ForecastResult)
+async def predict(request: ForecastRequestSchema):
     try:
         logger.info(f"[predict/] Получен запрос на прогноз: {request}")
         result = ml_pipeline.train_and_predict(

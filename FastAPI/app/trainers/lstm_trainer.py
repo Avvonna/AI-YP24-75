@@ -4,9 +4,10 @@ import numpy as np
 import pandas as pd
 import torch
 from app.configs import LSTMConfig
-from app.core import DataManager
+from app.core.data_manager import DataManager
 from app.features import create_time_features, update_extended_features_lastrow
 from app.models.nn import LSTMForecaster, TimeSeriesDataset, fit_model
+from app.schemas import ExperimentMetrics
 from app.trainers import BaseModelTrainer
 from torch import nn
 from torch.utils.data import DataLoader
@@ -16,6 +17,8 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class LSTMTrainer(BaseModelTrainer):
+    config_class = LSTMConfig
+
     def __init__(self, data_manager: DataManager):
         self.data_manager = data_manager
         self.model = None
@@ -23,7 +26,7 @@ class LSTMTrainer(BaseModelTrainer):
         self.feature_columns = []
         self.target_column = "target"
 
-    def train(self, ticker: str, base_date: pd.Timestamp, config: LSTMConfig):
+    def train(self, ticker: str, base_date: pd.Timestamp, config: config_class):
         self.window = config.window_size
         df = self.data_manager.get_features(ticker, base_date, self.window)
 
@@ -71,10 +74,10 @@ class LSTMTrainer(BaseModelTrainer):
         self.model = model
         X_tensor = torch.tensor(X_seq, dtype=torch.float32).to(DEVICE)
         preds = model(X_tensor).detach().cpu().numpy().squeeze()
-        metrics = {
-            "mse": float(train_losses[-1]),
-            "mae": float(np.mean(np.abs(y_seq - preds)))
-        }
+        metrics = ExperimentMetrics(
+            mae=float(np.mean(np.abs(y_seq - preds))),
+            mse=float(train_losses[-1])
+        )
 
         return model, metrics
 

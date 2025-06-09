@@ -12,5 +12,8 @@ class AutoARIMAConfig(BaseModelConfig):
     max_P: int = 6
     max_D: int = 6
     max_Q: int = 6
-    seasonal: bool = Field(default=True)
+    seasonal: bool = True
     seasonal_period: Optional[int] = Field(default=7, ge=1)
+    suppress_warnings: bool = True
+    stepwise: bool = True
+    error_action: Literal["warn", "trace", "ignore"] = "ignore"

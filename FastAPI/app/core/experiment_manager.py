@@ -1,47 +1,48 @@
 import pickle
 from pathlib import Path
+from typing import Any, Optional
 
 import joblib
+from app.configs import ModelConfigUnion
+from app.schemas import (
+    ComparisonResult,
+    ExperimentMetrics,
+    ExperimentRecord,
+    TickerHistory,
+)
 
 
 class ExperimentManager:
     def __init__(self):
-        self.experiments = {}
-        self.current_experiment = None
+        self.experiments: dict[str, ExperimentRecord] = {}
+        self.current_experiment: Optional[str] = None
 
-    def save(self, name: str, model, config, metrics, history):
-        self.experiments[name] = {
-            "model": model,
-            "config": config.model_dump(),
-            "metrics": metrics,
-            "training_history": history["values"],
-            "training_dates": history["dates"]
-        }
+    def save(self, name: str, model: Any, config: ModelConfigUnion, metrics: ExperimentMetrics, history: TickerHistory):
+        record = ExperimentRecord(
+            name=name,
+            model=model,
+            config=config.model_dump(),
+            metrics=metrics,
+            training_data=history
+        )
+        self.experiments[name] = record
         self.current_experiment = name
 
-    def get(self, name: str):
+    def get_all(self) -> list[str]:
+        return list(self.experiments.keys())
+
+    def get(self, name: str) -> Optional[ExperimentRecord]:
         return self.experiments.get(name)
 
-    def compare(self, names: list[str]):
-        existing = set(self.experiments)
+    def compare(self, names: list[str]) -> ComparisonResult:
+        existing = set(self.get_all())
         found = [n for n in names if n in existing]
         missing = list(set(names) - existing)
 
-        results = {
-            "experiments": {
-                n: {
-                    "metrics": self.experiments[n]["metrics"],
-                    "config": self.experiments[n]["config"],
-                    "training_history": {
-                        "dates": self.experiments[n]["training_dates"],
-                        "values": self.experiments[n]["training_history"]
-                    }
-                } for n in found
-            },
-            "missing_experiments": {"count": len(missing), "names": missing} if missing else None
-        }
-
-        return results
+        return ComparisonResult(
+            experiments=[self.experiments[n] for n in found],
+            missing_experiments=missing
+        )
 
     def save_to_file(self, name: str, path: str, fmt="pickle"):
         path = Path(path)
