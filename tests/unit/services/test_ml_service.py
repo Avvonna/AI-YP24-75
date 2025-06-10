@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock, patch
 
-import numpy as np
 import pandas as pd
 import pytest
 from app.configs import AutoARIMAConfig, CatBoostConfig
 from app.core.ml_service import MLService
+from app.schemas import ForecastConfidenceIntervals, ForecastResult
 
 
 @pytest.fixture
@@ -34,11 +34,11 @@ def test_train_and_predict_mocked_models(
     mock_trainer = MagicMock()
     mock_trainer.train.return_value = ("fake_model", {"mae": 0.1, "mse": 0.2})
     mock_trainer.predict.return_value = (
-        np.array([105.0, 106.0]),
-        {
-            "lower": np.array([104.0, 105.0]),
-            "upper": np.array([106.0, 107.0])
-        }
+        [105.0, 106.0],
+        ForecastConfidenceIntervals(
+            lower=[104.0, 105.0],
+            upper=[106.0, 107.0]
+        )
     )
     mock_get_trainer.return_value = mock_trainer
 
@@ -51,10 +51,10 @@ def test_train_and_predict_mocked_models(
         config=config
     )
 
-    assert list(result["forecast_values"]) == [105.0, 106.0]
-    assert list(result["confidence_intervals"]["lower"]) == [104.0, 105.0]
-    assert list(result["confidence_intervals"]["upper"]) == [106.0, 107.0]
-    assert "history" in result
+    assert isinstance(result, ForecastResult)
+    assert result.forecast_values == [105.0, 106.0]
+    assert result.confidence_intervals.lower == [104.0, 105.0]
+    assert result.confidence_intervals.upper == [106.0, 107.0]
 
     mock_trainer.train.assert_called_once()
     mock_trainer.predict.assert_called_once()
