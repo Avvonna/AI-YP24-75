@@ -32,6 +32,7 @@ with col1:
     st.page_link("pages/1_📁 Исторические_данные.py", label="Исторические данные", icon="📁")
 with col2:
     st.page_link("pages/2_🔮 Прогнозирование.py", label="Построить прогноз", icon="🔮")
+    st.page_link("pages/4_➕ Добавить_тикер.py", label="Добавить_тикер", icon="➕")
 with col3:
     st.page_link("pages/3_⚖️ Анализ результатов.py", label="Эксперименты", icon="📚")
 
