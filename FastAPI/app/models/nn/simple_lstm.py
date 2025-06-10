@@ -1,11 +1,13 @@
+import logging
 from typing import Optional
 
 import torch
 from torch import nn
 from torch.utils.data import Dataset
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+logger = logging.getLogger(__name__)
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class TimeSeriesDataset(Dataset):
     """
@@ -56,7 +58,6 @@ def fit_model(
     epochs: int = 100,
     patience: int = 15,
     scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
-    save_path: str = "best_lstm_model.pt"
 ):
     """
     Функция обучения модели с ранней остановкой и сохранением лучшей версии по валидации.
@@ -96,7 +97,6 @@ def fit_model(
         if val_loss < best_val:
             best_val = val_loss
             stop_count = 0
-            torch.save(model.state_dict(), save_path)
         else:
             stop_count += 1
             if stop_count >= patience:
@@ -104,8 +104,6 @@ def fit_model(
                 break
 
         if (epoch + 1) % 10 == 0:
-            print(f"Epoch {epoch+1}/{epochs} - Train Loss: {train_losses[-1]:.4f} | Val Loss: {val_loss:.4f}")
+            logger.info(f"Epoch {epoch+1}/{epochs} - Train Loss: {train_losses[-1]:.4f} | Val Loss: {val_loss:.4f}")
 
-    # Загрузка лучшей модели
-    model.load_state_dict(torch.load(save_path))
     return model, train_losses, val_losses

@@ -4,8 +4,6 @@ from typing import Optional
 from app.configs import ModelConfigUnion
 from pydantic import BaseModel, Field
 
-from .tickers import TickerHistory
-
 
 class ForecastRequestSchema(BaseModel):
     ticker: str = Field(..., examples=["LKOH"])

@@ -7,7 +7,8 @@ services:
     ports:
       - "8501:8501"
     depends_on:
-      - fastapi
+      fastapi:
+        condition: service_healthy
     environment:
       - BACKEND_URL=http://fastapi:8000
     volumes:
@@ -29,6 +30,12 @@ services:
     restart: unless-stopped
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 1m
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   app_network:

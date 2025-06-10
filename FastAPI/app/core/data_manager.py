@@ -1,6 +1,7 @@
 import logging
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from app.core.csv_loader import CSVLoader
@@ -8,7 +9,6 @@ from app.core.feature_cache import FeatureCache
 from app.features import preprocess_for_model
 from app.schemas import TickerHistory
 from app.utils import validate_dataframe
-from typing import Optional
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"

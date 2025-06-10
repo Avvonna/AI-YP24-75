@@ -1,25 +1,33 @@
-import os
 from datetime import date
 
 import pandas as pd
 import plotly.graph_objects as go
 import requests
+from utils.api import BACKEND_URL, load_model_schema, load_models, load_tickers
 from utils.logger import get_logger
+from utils.render_config import render_config_from_schema
 
 import streamlit as st
 
 # Настройки
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 logger = get_logger()
 
-st.title("📈 Прогнозирование по тикерам")
+st.title("Прогнозирование по тикерам")
 
-# 1. Выбор тикера и интервала
-@st.cache_data(show_spinner="Загружаем тикеры...")
-def load_tickers():
-    return requests.get(f"{BACKEND_URL}/api/tickers").json()
+# Инициализация session state
+if "is_forecasting" not in st.session_state:
+    st.session_state.is_forecasting = False
+if "forecast_result" not in st.session_state:
+    st.session_state.forecast_result = None
 
-tickers = load_tickers()
+# 1. Загрузка тикеров и моделей
+try:
+    tickers = load_tickers()
+    models = load_models()
+except Exception:
+    st.stop()
+
+# 2. Выбор тикера и интервала
 ticker = st.selectbox("Выберите тикер", tickers)
 col1, col2 = st.columns(2)
 start_date = col1.date_input("Начальная дата", value=date(2022, 1, 1))
@@ -29,129 +37,131 @@ if end_date <= start_date:
     st.warning("❗ Конечная дата должна быть позже начальной.")
     st.stop()
 
-# 2. Параметры модели
-model = st.selectbox("Выберите модель", ["AutoARIMA", "CatBoost", "LSTM"])
+# 3. Параметры модели
+model = st.selectbox("Выберите модель", models)
 forecast_period = st.number_input("Горизонт прогноза", min_value=1, value=10)
 
-config = {}
-if model == "AutoARIMA":
-    st.markdown("**Параметры AutoARIMA**")
-    config = {
-        "model_type": "auto_arima",
-        "max_p": st.number_input("max_p", value=2),
-        "max_d": st.number_input("max_d", value=1),
-        "max_q": st.number_input("max_q", value=2),
-        "max_P": st.number_input("max_P", value=2),
-        "max_D": st.number_input("max_D", value=1),
-        "max_Q": st.number_input("max_Q", value=2),
-        "seasonal": st.checkbox("Сезонность", value=True),
-        "seasonal_period": st.number_input("Сезонный период", value=7),
-    }
-elif model == "CatBoost":
-    st.markdown("**Параметры CatBoost**")
-    config = {
-        "model_type": "catboost",
-        "iterations": st.number_input("Итерации", value=300),
-        "learning_rate": st.number_input("Скорость обучения", value=0.03),
-        "depth": st.number_input("Глубина", value=6),
-    }
-elif model == "LSTM":
-    st.markdown("**Параметры LSTM**")
-    config = {
-        "model_type": "lstm",
-        "hidden_dim": st.number_input("Скрытых нейронов (hidden_dim)", min_value=1, value=64),
-        "num_layers": st.number_input("Число слоёв (num_layers)", min_value=1, value=2),
-        "dropout": st.number_input("Dropout", min_value=0.0, max_value=1.0, value=0.2),
-        "lr": st.number_input("Скорость обучения (lr)", min_value=0.0001, value=0.001, format="%.4f"),
-        "epochs": st.number_input("Эпохи обучения", min_value=1, value=5),
-        "batch_size": st.number_input("Размер батча", min_value=1, value=32),
-        "patience": st.number_input("Patience (ранняя остановка)", min_value=1, value=10),
-        "window_size": st.number_input("Размер окна (window)", min_value=1, value=30),
-    }
+st.markdown(f"**Параметры {model}**")
 
-# 3. Кнопка запуска
-if st.button("🔮 Построить прогноз"):
+# 3.1 Получение схемы конфигурации и генерация формы
+try:
+    schema = load_model_schema(model)["config_schema"]
+except Exception:
+    st.stop()
+config = render_config_from_schema(schema)
+
+# 4. Кнопка запуска с блокировкой
+if st.session_state.is_forecasting:
+    st.info("🔄 Выполняется прогноз... Пожалуйста, подождите.")
+    st.button("🔮 Построить прогноз", disabled=True)
+else:
+    forecast_button = st.button("🔮 Построить прогноз")
+
+    if forecast_button:
+        st.session_state.is_forecasting = True
+        st.rerun()
+
+# 5. Выполнение прогноза
+if st.session_state.is_forecasting:
     try:
-        # 1. Получение истории
-        history_resp = requests.post(
-            f"{BACKEND_URL}/api/tickers/{ticker}/history",
-            json={"start_date": start_date.isoformat(), "end_date": end_date.isoformat()}
-        )
-        history = history_resp.json()
-        df = pd.DataFrame({"date": history["dates"], "value": history["values"]})
-        if df.empty:
-            st.warning("Нет данных за выбранный период для выбранного тикера.")
-            st.stop()
-        df["date"] = pd.to_datetime(df["date"]).dt.floor("D")
-
-        # 1.1 Проверка реального интервала данных
-        actual_start = df["date"].min().date()
-        actual_end = df["date"].max().date()
-
-        if actual_start != start_date or actual_end != end_date:
-            st.info(
-                f"⚠️ Данные доступны только за период: с {actual_start} по {actual_end}. "
-                "Даты были автоматически скорректированы."
+        with st.spinner("Загрузка данных и построение прогноза..."):
+            # Получение истории
+            history_resp = requests.post(
+                f"{BACKEND_URL}/api/tickers/{ticker}/history",
+                json={"start_date": start_date.isoformat(), "end_date": end_date.isoformat()}
             )
+            history = history_resp.json()
+            df = pd.DataFrame({"date": history["dates"], "value": history["values"]})
 
-        # 2. Отправка на обучение и прогноз
-        request_payload = {
-            "ticker": ticker,
-            "base_date": actual_end.isoformat(),
-            "forecast_period": forecast_period,
-            "config": config,
-        }
+            if df.empty:
+                st.warning("Нет данных за выбранный период для выбранного тикера.")
+                st.session_state.is_forecasting = False
+                st.rerun()
 
-        predict_resp = requests.post(f"{BACKEND_URL}/api/predictions", json=request_payload)
-        result = predict_resp.json()
+            df["date"] = pd.to_datetime(df["date"]).dt.floor("D")
 
-        if predict_resp.status_code != 200 or "forecast_values" not in result:
-            st.error(f"Ошибка от backend: {result}")
-            logger.error(f"Ошибка от backend: {result}")
-            st.stop()
+            actual_start = df["date"].min().date()
+            actual_end = df["date"].max().date()
 
-        # 3. Визуализация
-        forecast_df = pd.DataFrame({
-            "date": pd.to_datetime(result["forecast_dates"]).floor("D"),
-            "value": result["forecast_values"]
-        })
+            if actual_start != start_date or actual_end != end_date:
+                st.info(
+                    f"⚠️ Данные доступны только за период: с {actual_start} по {actual_end}. "
+                    "Даты были автоматически скорректированы."
+                )
 
-        st.success("Прогноз выполнен!")
-        st.subheader("📊 История и прогноз")
+            # Прогноз
+            request_payload = {
+                "ticker": ticker,
+                "base_date": actual_end.isoformat(),
+                "forecast_period": forecast_period,
+                "config": config,
+            }
 
-        fig = go.Figure()
+            predict_resp = requests.post(f"{BACKEND_URL}/api/predictions", json=request_payload)
+            result = predict_resp.json()
 
-        # Историческая кривая
-        fig.add_trace(go.Scatter(
-            x=df["date"],
-            y=df["value"],
-            mode="lines",
-            name="история",
-            line={"color": "blue", "dash": "solid"}
-        ))
+            if predict_resp.status_code != 200 or "forecast_values" not in result:
+                st.error(f"Ошибка от backend: {result}")
+                logger.error(f"Ошибка от backend: {result}")
+                st.session_state.is_forecasting = False
+                st.rerun()
 
-        # Прогнозная кривая
-        fig.add_trace(go.Scatter(
-            x=forecast_df["date"],
-            y=forecast_df["value"],
-            mode="lines",
-            name="прогноз",
-            line={"color": "red", "dash": "dash"}
-        ))
+            # Сохраняем результат в session state
+            forecast_df = pd.DataFrame({
+                "date": pd.to_datetime(result["forecast_dates"]).map(lambda d: d.date()),
+                "value": result["forecast_values"]
+            })
 
-        fig.update_layout(
-            title="История и прогноз",
-            xaxis_title="Дата",
-            yaxis_title="Значение",
-            legend_title="Тип данных",
-            template="plotly_white"
-        )
+            st.session_state.forecast_result = {
+                "df": df,
+                "forecast_df": forecast_df,
+                "actual_start": actual_start,
+                "actual_end": actual_end
+            }
 
-        st.plotly_chart(fig, use_container_width=True)
-
-        st.write("📎 Таблица прогноза:")
-        st.dataframe(forecast_df)
+            # Завершаем операцию
+            st.session_state.is_forecasting = False
+            st.rerun()
 
     except Exception as e:
         st.error("Ошибка при построении прогноза")
         logger.exception(e)
+        st.session_state.is_forecasting = False
+        st.rerun()
+
+# 6. Отображение результатов
+if st.session_state.forecast_result:
+    result_data = st.session_state.forecast_result
+
+    st.success("Прогноз выполнен!")
+    st.subheader("📊 История и прогноз")
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=result_data["df"]["date"],
+        y=result_data["df"]["value"],
+        mode="lines",
+        name="история"
+    ))
+    fig.add_trace(go.Scatter(
+        x=result_data["forecast_df"]["date"],
+        y=result_data["forecast_df"]["value"],
+        mode="lines",
+        name="прогноз",
+        line={"dash": "dash"}
+    ))
+    fig.update_layout(
+        title="История и прогноз",
+        xaxis_title="Дата",
+        yaxis_title="Значение",
+        template="plotly_white"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.write("📎 Таблица прогноза:")
+    st.dataframe(result_data["forecast_df"].round(1))
+
+    # Кнопка для очистки результатов
+    if st.button("🗑️ Очистить результаты"):
+        st.session_state.forecast_result = None
+        st.rerun()

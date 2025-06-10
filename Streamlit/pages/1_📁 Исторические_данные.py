@@ -1,32 +1,20 @@
-import os
 from json import dumps
 
 import pandas as pd
 import plotly.express as px
 import requests
+from utils.api import BACKEND_URL, load_tickers
 from utils.logger import get_logger
 
 import streamlit as st
 
-# Базовый URL
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
-
 # Логгер
 logger = get_logger()
-
-# Кэшируем список тикеров
-@st.cache_data(show_spinner="Загружаем тикеры...")
-def load_tickers():
-    response = requests.get(f"{BACKEND_URL}/api/tickers")
-    response.raise_for_status()
-    return response.json()
 
 # Загружаем тикеры
 try:
     tickers = load_tickers()
 except Exception:
-    st.error("Не удалось загрузить список тикеров.")
-    logger.exception("Ошибка загрузки тикеров")
     st.stop()
 
 # UI
@@ -72,10 +60,10 @@ if st.button("Получить данные"):
 
             st.success("Данные успешно получены")
             st.write("Таблица данных:")
-            st.dataframe(df)
+            st.dataframe(df.round(1))
 
             st.write("Статистика (EDA):")
-            st.write(df.describe())
+            st.write(df.describe().round(1))
 
             fig1 = px.box(df, y="values", title="Boxplot: цены акций")
             st.plotly_chart(fig1, use_container_width=True)
@@ -83,7 +71,7 @@ if st.button("Получить данные"):
             fig2 = px.histogram(df, x="values", labels={"values": "Цена"}, title="Histogram: цены акций")
             st.plotly_chart(fig2, use_container_width=True)
 
-            fig3 = px.line(df, x="dates", y="values", labels={"dates": "Дата", "values": "Цена"},
+            fig3 = px.line(df.round(1), x="dates", y="values", labels={"dates": "Дата", "values": "Цена"},
                         title="Динамика цен по датам")
             st.plotly_chart(fig3, use_container_width=True)
 

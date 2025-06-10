@@ -14,7 +14,7 @@ class ExperimentMetrics(BaseModel):
 
 class ExperimentRecord(BaseModel):
     name: str
-    model: Any
+    model: Optional[Any] = Field(default=None, exclude=True)
     config: ModelConfigUnion
     metrics: ExperimentMetrics
     training_data: TickerHistory

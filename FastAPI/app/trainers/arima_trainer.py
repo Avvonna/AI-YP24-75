@@ -40,7 +40,7 @@ class AutoARIMATrainer(BaseModelTrainer):
             values = df["value"].values.astype(np.float64)
 
             model_params = config.get_model_params()
-            model = auto_arima(values, **model_params)
+            model = auto_arima(values, **model_params, error_action="ignore")
 
             self.model = model
             metrics = self._calculate_metrics(model, df["value"])
